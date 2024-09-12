@@ -5,18 +5,6 @@ Septemper 11, 2024
 Project:
 Make a falling sand simulator, where when the user clicks on the game window,
 a sand particle is created and falls to the bottom of the screen 
-
-1 - Start with a black screen
-2 - If the player clicks on a pixel, create a sandgrain in that pixel position
-    2.1 - Gets the posisition on the game screen where the mouse was clicked
-    2.2 - Create a sand grain and position him in the 2.1 position
-    2.3 - Update the grainMtx that holds all sand grains positions
-3 - Make the sandGrain fall until hit the end of screen or another grain
-    3.1 - While there is no sand under or if still have screen pixels under:
-        move the sand grain center 1px down (let the grain without cuts on the screen)
-4 - Make the previous grains stay on the screen when new ones appear (ISSUE n1)
-    4.1 - Make use of the grainMtx memory feature
-        Search in the grainMtx for grains, retrieve their positions and draw then (do that in all repetitions)
 """
 import pygame
 
@@ -67,8 +55,8 @@ def addSandToMtx(mtx, mousex, mousey, sandSize):
     return mtx
 
 def main():
-    windowResolution = 400
-    rows, columns = [200, 200]
+    windowResolution = 1000
+    rows, columns = [100, 100]
     sandSize = windowResolution // rows
 
     pygame.init()
@@ -77,8 +65,6 @@ def main():
 
     gridMaker(screen, rows, columns, windowResolution)
     mtx = makeMtx(rows)
-    mtx[23][12] = 1
-    mtx[37][20] = 1
 
     #Game loop ----------------------------------------------------------
     running = True
@@ -101,8 +87,6 @@ def main():
         mtx = gridUpdater(mtx)
         #Desenhar grid
         gridDrawer(mtx, sandSize, screen)
-        
-        
         
     pygame.quit()
     
