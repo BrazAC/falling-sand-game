@@ -8,7 +8,7 @@ a sand particle is created and falls to the bottom of the screen
 """
 import pygame
 
-def gridMaker(screen, rows, columns, resolution):
+def gridMaker(screen, rows, columns, resolution): #Desenha o grid na tela
     #Creating the grid
     lineDistance = resolution // rows
     x, y = [0,0]
@@ -18,22 +18,16 @@ def gridMaker(screen, rows, columns, resolution):
         pygame.draw.line(screen, "gray", (x, 0), (x, resolution))
         pygame.draw.line(screen, "gray", (0, y), (resolution, y))
         
-def makeMtx(rows):
+def makeMtx(rows):  #Cria uma matriz de mesma dimensão que o grid
     return [[0]*rows for _ in range(rows)]
 
-def gridDrawer(mtx, sandSize, surface):
-    pygame.time.delay(25)
-    surface.fill("black")   
-    for l in range(len(mtx)):
-        for c in range(len(mtx)):
-            if mtx[l][c] == 1:
-                sand = pygame.Rect(0, 0, sandSize, sandSize)
-                sand.centerx = (c * sandSize) - (sandSize//2)
-                sand.centery = (l * sandSize) - (sandSize//2)
-                pygame.draw.rect(surface, "white", sand)
-    pygame.display.flip()
+def addSandToMtx(mtx, mousex, mousey, sandSize): #Cadastra 1 na mtx de acordo com a posição clicada pelo usuario na tela
+    secaox = mousex // sandSize
+    secaoy = mousey // sandSize
+    mtx[secaoy][secaox] = 1
+    return mtx
 
-def gridUpdater(mtx):
+def gridUpdater(mtx):               #Move os 1's da mtx até a última linha (faz a areia cair)
     #Update por cópia
     copyMtx = mtx
     #Iterando coluna da esquerda pra direita
@@ -48,15 +42,26 @@ def gridUpdater(mtx):
                     copyMtx[l][c] = 1   
     return copyMtx
 
-def addSandToMtx(mtx, mousex, mousey, sandSize):
-    secaox = mousex // sandSize
-    secaoy = mousey // sandSize
-    mtx[secaoy][secaox] = 1
-    return mtx
+def gridDrawer(mtx, sandSize, surface): #Desenha areia de acordo com 1's de mtx (desenha a areia)
+    pygame.time.delay(fallingSpeed)
+    surface.fill(backgroundColor)   
+    for l in range(len(mtx)):
+        for c in range(len(mtx)):
+            if mtx[l][c] == 1:
+                sand = pygame.Rect(0, 0, sandSize, sandSize)
+                sand.centerx = (c * sandSize) - (sandSize//2)
+                sand.centery = (l * sandSize) - (sandSize//2)
+                pygame.draw.rect(surface, "white", sand)
+    pygame.display.flip()
 
 def main():
+    #IMPORTANT variables
+    global fallingSpeed
+    fallingSpeed = 25
+    global backgroundColor
+    backgroundColor = "black"
     windowResolution = 1000
-    rows, columns = [100, 100]
+    rows, columns = [250, 250]
     sandSize = windowResolution // rows
 
     pygame.init()
@@ -73,23 +78,24 @@ def main():
             if event.type == pygame.QUIT:
                 running = False   
 
-        #Cadastrar grão de areia na mtx
+        #----------------------------------->Cadastrar grão de areia na mtx
         #Get the mouse button that was pressed
         mouse_state = pygame.mouse.get_pressed(num_buttons=3)
-        
         #If the left-mouse was clicked, add sand to mtx:
         if mouse_state[0]:
             #Get the position where the mouse was pressed
             mouseCoord = pygame.mouse.get_pos()
             mtx = addSandToMtx(mtx, mouseCoord[0], mouseCoord[1], sandSize)
-
-        #Atualizar grid
-        mtx = gridUpdater(mtx)
-        #Desenhar grid
-        gridDrawer(mtx, sandSize, screen)
+        #If middle-mouse was clicked, clear the sand
+        elif mouse_state[1]:
+            mtx = makeMtx(rows)
         
+        #------------------------------------------->Atualizar grid (matriz)
+        mtx = gridUpdater(mtx)
+
+        #----------------------------------------------------->Desenhar grid
+        gridDrawer(mtx, sandSize, screen)
     pygame.quit()
     
-
 if __name__ == "__main__":
     main()
