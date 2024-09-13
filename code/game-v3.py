@@ -7,7 +7,7 @@ Make a falling sand simulator, where when the user clicks on the game window,
 a sand particle is created and falls to the bottom of the screen 
 
 - v2 version
-Code more organized, implementing "menu" and "pause"
+Code more organized, implementing a better menu/pause, breaking main looping into a function
 """
 import pygame
 import random
@@ -42,8 +42,8 @@ def gridUpdater(mtx):               #Move os 1's da mtx até a última linha (fa
                 if (l + 1) < len(mtx) and mtx[l+1][c] == 0:
                     copyMtx[l+1][c] = 1
                     copyMtx[l][c] = 0
-                else:
-                    copyMtx[l][c] = 1   
+               #else:
+                    #copyMtx[l][c] = 1   
     return copyMtx
 
 def gridDrawer(mtx, sandSize, surface): #Desenha areia de acordo com 1's de mtx (desenha a areia)
@@ -63,23 +63,62 @@ def starterMenu(sandSize, screen):
     begin = False
     while not begin:
         for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.QUIT:
+                    #Fechar menu, retornar controle pra main, fechar o jogo
+                    return 0
+                elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 or event.button == 2 or event.button == 3:
-                        begin = True
+                        #Fechar menu, retornar controle pra main, continuar o jogo
+                        return 1
+                        
         #----------------------------------->Cadastrar grão de areia na mtx
         secaox = random.randint(0, rows - 1)
         secaoy = random.randint(0, rows - 1)
-        mtxM[secaoy][secaox] = 1
+        if mtxM[secaoy][secaox] != 1: 
+            mtxM[secaoy][secaox] = 1
         #------------------------------------------->Atualizar grid (matriz)
         mtxM = gridUpdater(mtxM)
 
         #----------------------------------------------------->Desenhar grid
         gridDrawer(mtxM, sandSize, screen)
 
+def gameLoop(sandSize, screen):
+    mtx = makeMtx(rows)
+    #Game loop ----------------------------------------------------------|
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                    #If middle-mouse was clicked open menu
+                    if event.button == 2:
+                        option = starterMenu(sandSize, screen)
+                        #se retorno startMenu false, fechar jogo, se true, prosseguir
+                        if option == 0:
+                            pygame.quit()
+                            return
+        #----------------------------------->Cadastrar grão de areia na mtx
+        #Get the mouse button that was pressed
+        mouse_state = pygame.mouse.get_pressed(num_buttons=3)
+        #If the left-mouse was clicked, add sand to mtx:
+        if mouse_state[0]:
+            #Get the position where the mouse was pressed
+            mouseCoord = pygame.mouse.get_pos()
+            mtx = addSandToMtx(mtx, mouseCoord[0], mouseCoord[1], sandSize)
+        #If right-mouse was clicked, clear the sand
+        elif mouse_state[2]:
+            mtx = makeMtx(rows)
+        #------------------------------------------->Atualizar grid (matriz)
+        mtx = gridUpdater(mtx)
+        #----------------------------------------------------->Desenhar grid
+        gridDrawer(mtx, sandSize, screen)
+    pygame.quit()
+
 def main():
     #IMPORTANT variables
     global fallingSpeed
-    fallingSpeed = 25
+    fallingSpeed = 5
     global backgroundColor
     backgroundColor = "black"
     windowResolution = 1000
@@ -91,39 +130,12 @@ def main():
     screen = pygame.display.set_mode((windowResolution, windowResolution))
     pygame.display.set_caption('Sand game!')
 
-    starterMenu(sandSize, screen)
-    mtx = makeMtx(rows)
+    #Function calls
+    option = starterMenu(sandSize, screen)
+    if option == 0:
+        pygame.quit()
+    else:
+        gameLoop(sandSize, screen)
 
-
-    #Game loop ----------------------------------------------------------
-    running = True
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 3:
-                        starterMenu(sandSize, screen)
-               
-
-        #----------------------------------->Cadastrar grão de areia na mtx
-        #Get the mouse button that was pressed
-        mouse_state = pygame.mouse.get_pressed(num_buttons=3)
-        #If the left-mouse was clicked, add sand to mtx:
-        if mouse_state[0]:
-            #Get the position where the mouse was pressed
-            mouseCoord = pygame.mouse.get_pos()
-            mtx = addSandToMtx(mtx, mouseCoord[0], mouseCoord[1], sandSize)
-        #If middle-mouse was clicked, clear the sand
-        elif mouse_state[1]:
-            mtx = makeMtx(rows)
-        
-        #------------------------------------------->Atualizar grid (matriz)
-        mtx = gridUpdater(mtx)
-
-        #----------------------------------------------------->Desenhar grid
-        gridDrawer(mtx, sandSize, screen)
-    pygame.quit()
-    
 if __name__ == "__main__":
     main()
