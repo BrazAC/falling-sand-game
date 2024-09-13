@@ -5,8 +5,12 @@ Septemper 12, 2024
 Project:
 Make a falling sand simulator, where when the user clicks on the game window,
 a sand particle is created and falls to the bottom of the screen 
+
+- v2 version
+Code more organized, implementing "menu" and pause
 """
 import pygame
+import random
 
 def gridMaker(screen, rows, columns, resolution): #Desenha o grid na tela
     #Creating the grid
@@ -54,6 +58,24 @@ def gridDrawer(mtx, sandSize, surface): #Desenha areia de acordo com 1's de mtx 
                 pygame.draw.rect(surface, "white", sand)
     pygame.display.flip()
 
+def starterMenu(sandSize, screen):
+    mtxM = makeMtx(rows)
+    begin = False
+    while not begin:
+        for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1 or event.button == 2 or event.button == 3:
+                        begin = True
+        #----------------------------------->Cadastrar grão de areia na mtx
+        secaox = random.randint(0, rows - 1)
+        secaoy = random.randint(0, rows - 1)
+        mtxM[secaoy][secaox] = 1
+        #------------------------------------------->Atualizar grid (matriz)
+        mtxM = gridUpdater(mtxM)
+
+        #----------------------------------------------------->Desenhar grid
+        gridDrawer(mtxM, sandSize, screen)
+    
 def main():
     #IMPORTANT variables
     global fallingSpeed
@@ -61,6 +83,7 @@ def main():
     global backgroundColor
     backgroundColor = "black"
     windowResolution = 1000
+    global rows
     rows, columns = [250, 250]
     sandSize = windowResolution // rows
 
@@ -68,15 +91,20 @@ def main():
     screen = pygame.display.set_mode((windowResolution, windowResolution))
     pygame.display.set_caption('Sand game!')
 
-    gridMaker(screen, rows, columns, windowResolution)
+    starterMenu(sandSize, screen)
     mtx = makeMtx(rows)
+
 
     #Game loop ----------------------------------------------------------
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False   
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 3:
+                        starterMenu(sandSize, screen)
+               
 
         #----------------------------------->Cadastrar grão de areia na mtx
         #Get the mouse button that was pressed
